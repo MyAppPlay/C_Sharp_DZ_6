@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 
@@ -24,6 +25,8 @@ namespace Task2
             return Math.Cos(x);
         }
 
+        private static readonly List<Func> Functions = new List<Func>{F,F2,F3};
+
         public static void SaveFunc(string fileName, double a, double b, double h, Func f)
         {
             FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.Write);
@@ -40,21 +43,24 @@ namespace Task2
             fs.Close();
         }
 
-        public static double Load(string fileName)
+        public static double[] Load(string fileName, out double min)
         {
             FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
             BinaryReader bw = new BinaryReader(fs);
-            double min = double.MaxValue;
+            min = double.MaxValue;
             double d;
+            List<double> valueList = new List<double>();
             for (int i = 0; i < fs.Length / sizeof(double); i++)
             {
                 // Считываем значение и переходим к следующему
                 d = bw.ReadDouble();
                 if (d < min) min = d;
+                valueList.Add(d);
             }
             bw.Close();
             fs.Close();
-            return min;
+
+            return valueList.ToArray();
         }
 
         public static void Menu()
@@ -90,18 +96,18 @@ namespace Task2
                     case 1:
                         Console.WriteLine(@"
                               Выбрана функция №1 : Формула функции:  y = x * x-50*x+10");
-                        Demonstration(F);
+                        Demonstration(Functions[0]);
                         break;
 
                     case 2:
                         Console.WriteLine(@"
                               Выбрана функция №2 : Формула функции   y = sin(x)");
-                        Demonstration(F2);
+                        Demonstration(Functions[1]);
                         break;
                     case 3:
                         Console.WriteLine(@"
                               Выбрана функция №3 : Формула функции:  y = cos (x)");
-                        Demonstration(F3);
+                        Demonstration(Functions[2]);
                         break;
                 }
 
@@ -118,7 +124,8 @@ namespace Task2
             double b = CorrectInput();
             SaveFunc("data.bin", a, b, 0.5, f);
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($" \nМинимальное значение функции найдено! Вот оно: {Load("data.bin")}");
+            Load("data.bin", out double min);
+            Console.WriteLine($" \nМинимальное значение функции найдено! Вот оно: {min}");
         }
 
         private static double CorrectInput()
